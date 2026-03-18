@@ -1,1 +1,576 @@
+<!DOCTYPE html>
 
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0c0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BES">
+<title>BES Portföyü</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c0f;--surface:#111417;--card:#161a1f;--border:#1e2530;
+  --accent:#a78bfa;--green:#00ff88;--red:#ff3860;--yellow:#ffd600;
+  --text:#e0e8f0;--muted:#5a6a7a;
+  --p1:#00e5ff;--p2:#ff6d00;--p3:#00ff88;--p4:#ffd700}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden}
+body{padding-bottom:80px}
+header{position:sticky;top:0;z-index:100;background:#0d1117;border-bottom:1px solid var(--accent);
+  padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.h-title{font-size:18px;font-weight:700;letter-spacing:2px;
+  background:linear-gradient(90deg,var(--accent),var(--green));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.h-sub{font-size:11px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+.h-total{font-size:22px;font-weight:700;font-family:'Share Tech Mono',monospace;color:var(--accent)}
+.h-label{font-size:10px;color:var(--muted);text-align:right}
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:62px;z-index:99;overflow-x:auto}
+.tab{flex:1;min-width:80px;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;
+  letter-spacing:1px;color:var(--muted);border-bottom:2px solid transparent;
+  cursor:pointer;transition:all .2s;text-transform:uppercase;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(167,139,250,.05)}
+.section{display:none;padding:12px}.section.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.ov-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.ov-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.ov-val{font-family:'Share Tech Mono',monospace;font-size:18px;margin-top:4px}
+.pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--muted)}
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:'Share Tech Mono',monospace;font-size:20px;
+  padding:10px 12px;outline:none;-webkit-appearance:none;transition:border-color .2s}
+.inp:focus{border-color:var(--accent)}
+.inp-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:4px}
+.btn{width:100%;padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff;
+  font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:10px}
+.btn.red{background:linear-gradient(135deg,var(--red),#900)}
+.sec-title{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+/* Portföy kartları */
+.pf-card{border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid}
+.pf-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pf-name{font-size:16px;font-weight:700}
+.pf-val{font-family:'Share Tech Mono',monospace;font-size:18px}
+.pf-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+.pf-stat{background:rgba(0,0,0,.3);border-radius:8px;padding:8px;text-align:center}
+.pf-stat-l{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.pf-stat-v{font-family:'Share Tech Mono',monospace;font-size:13px;margin-top:2px}
+/* Grafik */
+canvas{width:100%;border-radius:8px;background:var(--bg)}
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* Geçmiş */
+.hist-row{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.hist-row:last-child{border-bottom:none}
+.hist-date{font-size:11px;color:var(--muted);margin-bottom:2px}
+.hist-vals{display:flex;gap:8px;flex-wrap:wrap}
+.hist-val{font-family:'Share Tech Mono',monospace;font-size:12px}
+.del-btn{background:rgba(255,56,96,.1);border:1px solid var(--red);color:var(--red);
+  border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap}
+#alert{position:fixed;bottom:20px;left:16px;right:16px;z-index:999;padding:12px 16px;
+  border-radius:10px;font-size:14px;font-weight:700;display:none;
+  align-items:center;justify-content:center;text-align:center}
+#alert.ok{background:var(--green);color:#000}
+#alert.err{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-title">BES PORTFÖYÜ</div>
+    <div class="h-sub" id="last-update">Son giriş: —</div>
+  </div>
+  <div>
+    <div class="h-label">TOPLAM</div>
+    <div class="h-total" id="header-total">—</div>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <div class="tab active" data-tab="overview" onclick="showTab(this)">📊 Özet</div>
+  <div class="tab" data-tab="entry" onclick="showTab(this)">➕ Giriş</div>
+  <div class="tab" data-tab="chart" onclick="showTab(this)">📈 Grafik</div>
+  <div class="tab" data-tab="history" onclick="showTab(this)">📋 Geçmiş</div>
+</div>
+
+<!-- ÖZET -->
+
+<div id="tab-overview" class="section active">
+  <div class="ov-grid">
+    <div class="ov-card"><div class="ov-label">Toplam Değer</div><div class="ov-val" id="ov-total">—</div></div>
+    <div class="ov-card"><div class="ov-label">Toplam Büyüme</div><div class="ov-val neu" id="ov-growth">—</div></div>
+    <div class="ov-card"><div class="ov-label">Haftalık</div><div class="ov-val neu" id="ov-weekly">—</div></div>
+    <div class="ov-card"><div class="ov-label">Aylık</div><div class="ov-val neu" id="ov-monthly">—</div></div>
+  </div>
+
+  <div class="sec-title"><span class="dot" style="background:var(--accent)"></span>PORTFÖYLER</div>
+
+  <!-- P1 -->
+
+  <div class="pf-card" style="border-color:var(--p1);background:rgba(0,229,255,.04)">
+    <div class="pf-header">
+      <div class="pf-name" style="color:var(--p1)">🔵 Portföy 1</div>
+      <div class="pf-val" id="pf1-val">—</div>
+    </div>
+    <div class="pf-stats">
+      <div class="pf-stat"><div class="pf-stat-l">Haftalık</div><div class="pf-stat-v neu" id="pf1-w">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Aylık</div><div class="pf-stat-v neu" id="pf1-m">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Toplam</div><div class="pf-stat-v neu" id="pf1-t">—</div></div>
+    </div>
+  </div>
+
+  <!-- P2 -->
+
+  <div class="pf-card" style="border-color:var(--p2);background:rgba(255,109,0,.04)">
+    <div class="pf-header">
+      <div class="pf-name" style="color:var(--p2)">🟠 Portföy 2</div>
+      <div class="pf-val" id="pf2-val">—</div>
+    </div>
+    <div class="pf-stats">
+      <div class="pf-stat"><div class="pf-stat-l">Haftalık</div><div class="pf-stat-v neu" id="pf2-w">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Aylık</div><div class="pf-stat-v neu" id="pf2-m">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Toplam</div><div class="pf-stat-v neu" id="pf2-t">—</div></div>
+    </div>
+  </div>
+
+  <!-- P3 -->
+
+  <div class="pf-card" style="border-color:var(--p3);background:rgba(0,255,136,.04)">
+    <div class="pf-header">
+      <div class="pf-name" style="color:var(--p3)">🟢 Portföy 3</div>
+      <div class="pf-val" id="pf3-val">—</div>
+    </div>
+    <div class="pf-stats">
+      <div class="pf-stat"><div class="pf-stat-l">Haftalık</div><div class="pf-stat-v neu" id="pf3-w">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Aylık</div><div class="pf-stat-v neu" id="pf3-m">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Toplam</div><div class="pf-stat-v neu" id="pf3-t">—</div></div>
+    </div>
+  </div>
+
+  <!-- P4 -->
+
+  <div class="pf-card" style="border-color:var(--p4);background:rgba(255,215,0,.04)">
+    <div class="pf-header">
+      <div class="pf-name" style="color:var(--p4)">🟡 Portföy 4</div>
+      <div class="pf-val" id="pf4-val">—</div>
+    </div>
+    <div class="pf-stats">
+      <div class="pf-stat"><div class="pf-stat-l">Haftalık</div><div class="pf-stat-v neu" id="pf4-w">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Aylık</div><div class="pf-stat-v neu" id="pf4-m">—</div></div>
+      <div class="pf-stat"><div class="pf-stat-l">Toplam</div><div class="pf-stat-v neu" id="pf4-t">—</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- GİRİŞ -->
+
+<div id="tab-entry" class="section">
+  <div class="sec-title"><span class="dot" style="background:var(--accent)"></span>HAFTALıK VERİ GİRİŞİ</div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <label class="inp-label" style="color:var(--p1)">🔵 Portföy 1 (₺)</label>
+        <input class="inp" type="number" inputmode="decimal" step="0.01" placeholder="0.00" id="inp-p1">
+      </div>
+      <div>
+        <label class="inp-label" style="color:var(--p2)">🟠 Portföy 2 (₺)</label>
+        <input class="inp" type="number" inputmode="decimal" step="0.01" placeholder="0.00" id="inp-p2">
+      </div>
+      <div>
+        <label class="inp-label" style="color:var(--p3)">🟢 Portföy 3 (₺)</label>
+        <input class="inp" type="number" inputmode="decimal" step="0.01" placeholder="0.00" id="inp-p3">
+      </div>
+      <div>
+        <label class="inp-label" style="color:var(--p4)">🟡 Portföy 4 (₺)</label>
+        <input class="inp" type="number" inputmode="decimal" step="0.01" placeholder="0.00" id="inp-p4">
+      </div>
+    </div>
+    <div id="entry-total" style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;
+      text-align:center;font-family:'Share Tech Mono',monospace;font-size:18px;color:var(--accent)">
+      Toplam: —
+    </div>
+    <button class="btn" onclick="saveEntry()">💾 KAYDET</button>
+  </div>
+
+  <div class="sec-title" style="margin-top:4px"><span class="dot" style="background:var(--yellow)"></span>PORTFÖY İSİMLERİ</div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <label class="inp-label" style="color:var(--p1)">Portföy 1 Adı</label>
+        <input style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;padding:8px 10px;outline:none" type="text" id="name-p1" placeholder="Portföy 1" oninput="saveNames()">
+      </div>
+      <div>
+        <label class="inp-label" style="color:var(--p2)">Portföy 2 Adı</label>
+        <input style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;padding:8px 10px;outline:none" type="text" id="name-p2" placeholder="Portföy 2" oninput="saveNames()">
+      </div>
+      <div>
+        <label class="inp-label" style="color:var(--p3)">Portföy 3 Adı</label>
+        <input style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;padding:8px 10px;outline:none" type="text" id="name-p3" placeholder="Portföy 3" oninput="saveNames()">
+      </div>
+      <div>
+        <label class="inp-label" style="color:var(--p4)">Portföy 4 Adı</label>
+        <input style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;padding:8px 10px;outline:none" type="text" id="name-p4" placeholder="Portföy 4" oninput="saveNames()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAFİK -->
+
+<div id="tab-chart" class="section">
+  <div class="card" style="padding:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="sec-title" style="margin:0;border:none;padding:0"><span class="dot" style="background:var(--accent)"></span>BÜYÜME GRAFİĞİ</div>
+      <div style="display:flex;gap:6px">
+        <button onclick="setRange(8)" id="r8" style="padding:4px 10px;border-radius:6px;border:1px solid var(--accent);background:rgba(167,139,250,.2);color:var(--accent);font-size:11px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">8H</button>
+        <button onclick="setRange(26)" id="r26" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">6A</button>
+        <button onclick="setRange(0)" id="r0" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">TÜM</button>
+      </div>
+    </div>
+    <canvas id="growth-chart" height="200"></canvas>
+    <div class="chart-legend" id="chart-legend"></div>
+  </div>
+
+  <div class="card" style="padding:10px;margin-top:0">
+    <div class="sec-title" style="margin-bottom:8px"><span class="dot" style="background:var(--yellow)"></span>% BÜYÜME (Başlangıçtan)</div>
+    <canvas id="pct-chart" height="160"></canvas>
+  </div>
+</div>
+
+<!-- GEÇMİŞ -->
+
+<div id="tab-history" class="section">
+  <div class="sec-title"><span class="dot" style="background:var(--yellow)"></span>HAFTALIK GEÇMİŞ</div>
+  <div class="card" id="hist-container">
+    <div style="text-align:center;color:var(--muted);padding:20px">Henüz giriş yok</div>
+  </div>
+</div>
+
+<div id="alert"><span id="alert-text"></span></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var entries=[]; // [{date, p1, p2, p3, p4, total}]
+var names={p1:'Portföy 1',p2:'Portföy 2',p3:'Portföy 3',p4:'Portföy 4'};
+var chartRange=8;
+
+window.onload=function(){load();fillNames();updateEntryTotal();render();drawCharts();};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmtTL(n){return Math.round(n).toLocaleString('tr-TR');}
+function fmtPct(n){return (n>=0?'+':'')+n.toFixed(2)+'%';}
+function cls(n){return n>0?'pos':n<0?'neg':'neu';}
+
+function showTab(el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+el.dataset.tab).classList.add('active');
+  if(el.dataset.tab==='chart')setTimeout(drawCharts,50);
+}
+
+// ── GİRİŞ ─────────────────────────────────────────────────────────────────────
+function updateEntryTotal(){
+  var t=0;
+  ['p1','p2','p3','p4'].forEach(function(k){
+    var v=parseFloat(document.getElementById('inp-'+k).value)||0;t+=v;
+  });
+  document.getElementById('entry-total').textContent='Toplam: ₺'+fmtTL(t);
+}
+['p1','p2','p3','p4'].forEach(function(k){
+  document.getElementById('inp-'+k).addEventListener('input',updateEntryTotal);
+});
+
+function saveEntry(){
+  var vals={};
+  var total=0;
+  var filled=0;
+  ['p1','p2','p3','p4'].forEach(function(k){
+    var v=parseFloat(document.getElementById('inp-'+k).value)||0;
+    vals[k]=v;total+=v;if(v>0)filled++;
+  });
+  if(filled===0){showAlert('err','En az bir değer girin!');return;}
+  entries.push({date:new Date().toISOString(),p1:vals.p1,p2:vals.p2,p3:vals.p3,p4:vals.p4,total:total});
+  ['p1','p2','p3','p4'].forEach(function(k){document.getElementById('inp-'+k).value='';});
+  document.getElementById('entry-total').textContent='Toplam: —';
+  save();render();drawCharts();
+  showAlert('ok','Kaydedildi! Toplam: ₺'+fmtTL(total));
+}
+
+function saveNames(){
+  ['p1','p2','p3','p4'].forEach(function(k){
+    var v=document.getElementById('name-'+k).value.trim();
+    names[k]=v||('Portföy '+(k[1]));
+  });
+  save();render();
+}
+
+function fillNames(){
+  ['p1','p2','p3','p4'].forEach(function(k){
+    document.getElementById('name-'+k).value=names[k];
+  });
+}
+
+function deleteEntry(i){
+  entries.splice(i,1);save();render();drawCharts();
+  showAlert('ok','Giriş silindi');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  if(entries.length===0){
+    document.getElementById('header-total').textContent='—';
+    document.getElementById('last-update').textContent='Son giriş: —';
+    ['ov-total','ov-growth','ov-weekly','ov-monthly'].forEach(function(id){
+      var el=document.getElementById(id);el.textContent='—';el.className='ov-val neu';
+    });
+    ['p1','p2','p3','p4'].forEach(function(k){
+      document.getElementById('pf'+k[1]+'-val').textContent='—';
+      ['w','m','t'].forEach(function(s){var el=document.getElementById('pf'+k[1]+'-'+s);el.textContent='—';el.className='pf-stat-v neu';});
+    });
+    document.getElementById('hist-container').innerHTML='<div style="text-align:center;color:var(--muted);padding:20px">Henüz giriş yok</div>';
+    return;
+  }
+
+  var last=entries[entries.length-1];
+  var first=entries[0];
+  var now=new Date();
+
+  // Header
+  document.getElementById('header-total').textContent='₺'+fmtTL(last.total);
+  document.getElementById('last-update').textContent='Son: '+new Date(last.date).toLocaleDateString('tr-TR');
+
+  // Özet kartlar
+  setVal('ov-total','₺'+fmtTL(last.total),'ov-val');
+  setPct('ov-growth',last.total,first.total,'ov-val');
+
+  // Haftalık (1 giriş önce)
+  var prevEntry=entries.length>=2?entries[entries.length-2]:null;
+  if(prevEntry){
+    var wPct=(last.total-prevEntry.total)/prevEntry.total*100;
+    var el=document.getElementById('ov-weekly');
+    el.textContent=fmtPct(wPct);el.className='ov-val '+cls(wPct);
+  }
+
+  // Aylık (~4 hafta önce)
+  var monthAgo=new Date(now);monthAgo.setDate(monthAgo.getDate()-30);
+  var mEntry=null;
+  for(var i=0;i<entries.length;i++){if(new Date(entries[i].date)<=monthAgo)mEntry=entries[i];}
+  if(mEntry){var mPct=(last.total-mEntry.total)/mEntry.total*100;var el2=document.getElementById('ov-monthly');el2.textContent=fmtPct(mPct);el2.className='ov-val '+cls(mPct);}
+
+  // Her portföy
+  ['p1','p2','p3','p4'].forEach(function(k,ki){
+    var idx=ki+1;
+    var cur=last[k];var fst=first[k];
+    document.getElementById('pf'+idx+'-val').textContent=cur>0?'₺'+fmtTL(cur):'—';
+    // Haftalık
+    if(prevEntry&&prevEntry[k]>0&&cur>0){var pw=(cur-prevEntry[k])/prevEntry[k]*100;var e=document.getElementById('pf'+idx+'-w');e.textContent=fmtPct(pw);e.className='pf-stat-v '+cls(pw);}
+    // Aylık
+    if(mEntry&&mEntry[k]>0&&cur>0){var pm=(cur-mEntry[k])/mEntry[k]*100;var e2=document.getElementById('pf'+idx+'-m');e2.textContent=fmtPct(pm);e2.className='pf-stat-v '+cls(pm);}
+    // Toplam
+    if(fst>0&&cur>0){var pt=(cur-fst)/fst*100;var e3=document.getElementById('pf'+idx+'-t');e3.textContent=fmtPct(pt);e3.className='pf-stat-v '+cls(pt);}
+    // İsim güncelle
+    var colors=['var(--p1)','var(--p2)','var(--p3)','var(--p4)'];
+    var icons=['🔵','🟠','🟢','🟡'];
+    var nameEl=document.querySelector('#tab-overview .pf-card:nth-child('+(ki+2)+') .pf-name');
+    if(nameEl)nameEl.textContent=icons[ki]+' '+names[k];
+  });
+
+  renderHistory();
+}
+
+function setVal(id,val,base){var el=document.getElementById(id);if(el){el.textContent=val;el.className=base||'';}}
+function setPct(id,cur,prev,base){
+  var el=document.getElementById(id);if(!el)return;
+  if(!prev||prev===0){el.textContent='—';el.className=(base||'')+' neu';return;}
+  var p=(cur-prev)/prev*100;el.textContent=fmtPct(p);el.className=(base||'')+' '+cls(p);
+}
+
+function renderHistory(){
+  var c=document.getElementById('hist-container');
+  var reversed=[...entries].reverse();
+  c.innerHTML=reversed.map(function(e,ri){
+    var i=entries.length-1-ri;
+    var d=new Date(e.date);
+    var prev=i>0?entries[i-1]:null;
+    var html='<div class="hist-row"><div style="flex:1"><div class="hist-date">'+d.toLocaleDateString('tr-TR')+' '+d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+'</div>';
+    html+='<div style="font-family:\'Share Tech Mono\',monospace;font-size:14px;color:var(--accent);margin:4px 0">Toplam: ₺'+fmtTL(e.total)+'</div>';
+    html+='<div class="hist-vals">';
+    ['p1','p2','p3','p4'].forEach(function(k,ki){
+      var colors=['var(--p1)','var(--p2)','var(--p3)','var(--p4)'];
+      if(e[k]>0){
+        var chStr='';
+        if(prev&&prev[k]>0){var ch=(e[k]-prev[k])/prev[k]*100;chStr=' <span style="color:'+(ch>=0?'var(--green)':'var(--red)')+'">'+fmtPct(ch)+'</span>';}
+        html+='<span class="hist-val" style="color:'+colors[ki]+'">'+names[k]+': ₺'+fmtTL(e[k])+chStr+'</span>';
+      }
+    });
+    html+='</div></div>';
+    html+='<button class="del-btn" onclick="deleteEntry('+i+')">Sil</button></div>';
+    return html;
+  }).join('')||'<div style="text-align:center;color:var(--muted);padding:20px">Henüz giriş yok</div>';
+}
+
+// ── GRAFİKLER ─────────────────────────────────────────────────────────────────
+function setRange(r){
+  chartRange=r;
+  ['r8','r26','r0'].forEach(function(id){
+    var btn=document.getElementById(id);
+    var active=(id==='r'+r)||(r===0&&id==='r0');
+    btn.style.background=active?'rgba(167,139,250,.2)':'transparent';
+    btn.style.borderColor=active?'var(--accent)':'var(--border)';
+    btn.style.color=active?'var(--accent)':'var(--muted)';
+  });
+  drawCharts();
+}
+
+function drawCharts(){
+  if(entries.length<2)return;
+  var data=chartRange>0?entries.slice(-chartRange):entries;
+  var COLORS=['#00e5ff','#ff6d00','#00ff88','#ffd700'];
+  var KEYS=['p1','p2','p3','p4'];
+
+  // — Büyüme Grafiği —
+  var c1=document.getElementById('growth-chart');
+  var ctx1=c1.getContext('2d');
+  c1.width=c1.offsetWidth*window.devicePixelRatio||600;
+  c1.height=200*window.devicePixelRatio||200;
+  ctx1.scale(window.devicePixelRatio||1,window.devicePixelRatio||1);
+  var W=c1.offsetWidth||300,H=200;
+  ctx1.clearRect(0,0,W,H);
+
+  // Arka plan grid
+  ctx1.strokeStyle='rgba(255,255,255,.05)';ctx1.lineWidth=1;
+  for(var g=0;g<5;g++){var y=20+g*(H-40)/4;ctx1.beginPath();ctx1.moveTo(40,y);ctx1.lineTo(W-10,y);ctx1.stroke();}
+
+  // Tüm değerleri topla (toplam çizgisi için)
+  var allVals=[data.map(function(e){return e.total;})];
+  KEYS.forEach(function(k){allVals.push(data.map(function(e){return e[k];}));});
+  var allFlat=[].concat.apply([],allVals).filter(function(v){return v>0;});
+  if(allFlat.length===0)return;
+  var minV=Math.min.apply(null,allFlat)*0.98;
+  var maxV=Math.max.apply(null,allFlat)*1.02;
+  var range=maxV-minV||1;
+
+  function toY(v){return H-20-(v-minV)/range*(H-40);}
+  function toX(i){return 40+(i/(data.length-1||1))*(W-50);}
+
+  // Y eksen etiketleri
+  ctx1.fillStyle='rgba(90,106,122,.8)';ctx1.font='10px Share Tech Mono';ctx1.textAlign='right';
+  for(var g2=0;g2<5;g2++){
+    var val=minV+g2*(maxV-minV)/4;
+    ctx1.fillText((val/1000).toFixed(0)+'K',36,H-20-g2*(H-40)/4+4);
+  }
+
+  // Toplam çizgisi (beyaz, kalın)
+  drawLine(ctx1,data,function(e){return e.total;},toX,toY,'rgba(255,255,255,.6)',2.5,false);
+
+  // Her portföy
+  KEYS.forEach(function(k,ki){
+    drawLine(ctx1,data,function(e){return e[k];},toX,toY,COLORS[ki],1.5,true);
+  });
+
+  // X ekseni tarihleri
+  ctx1.fillStyle='rgba(90,106,122,.8)';ctx1.font='9px Share Tech Mono';ctx1.textAlign='center';
+  var step=Math.max(1,Math.floor(data.length/4));
+  for(var xi=0;xi<data.length;xi+=step){
+    var d=new Date(data[xi].date);
+    ctx1.fillText(d.getDate()+'/'+(d.getMonth()+1),toX(xi),H-4);
+  }
+
+  // Legend
+  var leg=document.getElementById('chart-legend');
+  leg.innerHTML='<div class="legend-item"><span class="legend-dot" style="background:rgba(255,255,255,.6)"></span><span>Toplam</span></div>';
+  KEYS.forEach(function(k,ki){
+    leg.innerHTML+='<div class="legend-item"><span class="legend-dot" style="background:'+COLORS[ki]+'"></span><span>'+names[k]+'</span></div>';
+  });
+
+  // — % Büyüme Grafiği —
+  var c2=document.getElementById('pct-chart');
+  var ctx2=c2.getContext('2d');
+  c2.width=c2.offsetWidth*window.devicePixelRatio||600;
+  c2.height=160*window.devicePixelRatio||160;
+  ctx2.scale(window.devicePixelRatio||1,window.devicePixelRatio||1);
+  var W2=c2.offsetWidth||300,H2=160;
+  ctx2.clearRect(0,0,W2,H2);
+
+  // % değişim (ilk girişe göre)
+  ctx2.strokeStyle='rgba(255,255,255,.05)';ctx2.lineWidth=1;
+  for(var g3=0;g3<5;g3++){var y3=15+g3*(H2-30)/4;ctx2.beginPath();ctx2.moveTo(40,y3);ctx2.lineTo(W2-10,y3);ctx2.stroke();}
+
+  var pctData=KEYS.map(function(k){
+    var first=data[0][k]||0;
+    return data.map(function(e){return first>0?((e[k]-first)/first*100):0;});
+  });
+  var allPct=[].concat.apply([],pctData);
+  var minP=Math.min.apply(null,allPct)-1,maxP=Math.max.apply(null,allPct)+1;
+  var rP=maxP-minP||1;
+
+  function toYp(v){return H2-15-(v-minP)/rP*(H2-30);}
+  function toXp(i){return 40+(i/(data.length-1||1))*(W2-50);}
+
+  // 0 çizgisi
+  ctx2.strokeStyle='rgba(255,255,255,.15)';ctx2.lineWidth=1;ctx2.setLineDash([4,4]);
+  var y0=toYp(0);ctx2.beginPath();ctx2.moveTo(40,y0);ctx2.lineTo(W2-10,y0);ctx2.stroke();ctx2.setLineDash([]);
+
+  // Y etiket
+  ctx2.fillStyle='rgba(90,106,122,.8)';ctx2.font='10px Share Tech Mono';ctx2.textAlign='right';
+  for(var g4=0;g4<5;g4++){var pv=minP+g4*(maxP-minP)/4;ctx2.fillText(pv.toFixed(0)+'%',36,H2-15-g4*(H2-30)/4+4);}
+
+  KEYS.forEach(function(k,ki){
+    var pd=pctData[ki];
+    ctx2.strokeStyle=COLORS[ki];ctx2.lineWidth=2;ctx2.beginPath();
+    pd.forEach(function(v,i){i===0?ctx2.moveTo(toXp(i),toYp(v)):ctx2.lineTo(toXp(i),toYp(v));});
+    ctx2.stroke();
+  });
+}
+
+function drawLine(ctx,data,valFn,toX,toY,color,width,dashed){
+  ctx.strokeStyle=color;ctx.lineWidth=width;
+  if(dashed)ctx.setLineDash([4,3]);else ctx.setLineDash([]);
+  ctx.beginPath();
+  var started=false;
+  data.forEach(function(e,i){var v=valFn(e);if(v>0){if(!started){ctx.moveTo(toX(i),toY(v));started=true;}else ctx.lineTo(toX(i),toY(v));}});
+  ctx.stroke();ctx.setLineDash([]);
+}
+
+// ── KAYDET / YÜKLE ─────────────────────────────────────────────────────────────
+function save(){
+  try{
+    var d=JSON.stringify({entries:entries,names:names});
+    try{localStorage.setItem('bes_v2',d);}catch(e){}
+    try{sessionStorage.setItem('bes_v2',d);}catch(e){}
+    try{var enc=btoa(unescape(encodeURIComponent(d)));document.cookie='bes_v2='+enc+';path=/;max-age=31536000;SameSite=Strict';}catch(e){}
+  }catch(e){}
+}
+function load(){
+  try{
+    var raw=null;
+    try{raw=localStorage.getItem('bes_v2');}catch(e){}
+    if(!raw){try{raw=sessionStorage.getItem('bes_v2');}catch(e){}}
+    if(!raw){try{var m=document.cookie.match(/bes_v2=([^;]+)/);if(m)raw=decodeURIComponent(escape(atob(m[1])));}catch(e){}}
+    if(!raw)return;
+    var s=JSON.parse(raw);
+    entries=s.entries||[];
+    if(s.names)names=s.names;
+  }catch(e){}
+}
+
+function showAlert(type,msg){
+  var el=document.getElementById('alert');
+  document.getElementById('alert-text').textContent=msg;
+  el.className=type;el.style.display='flex';
+  setTimeout(function(){el.style.display='none';},3000);
+}
+</script>
+
+</body>
+</html>
